@@ -56,7 +56,7 @@ infra/                       AWS CDK scaffold
 
 ## First Decisions To Confirm
 
-- Microsoft licensing: Microsoft 365 Copilot add-on, Copilot Studio, or pay-as-you-go.
+- Microsoft licensing: Microsoft 365 Copilot add-on, Copilot Studio, or pay-as-you-go. See [cost & licensing](docs/cost-and-licensing.md) for the SKU-by-SKU cost tradeoffs and a pilot-then-decide plan.
 - Ivanti tenant URL and REST auth method.
 - Ivanti business object names for knowledge articles and incidents.
 - Whether KB content should be synced into Microsoft Graph, queried live, or both.

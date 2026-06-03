@@ -71,9 +71,23 @@ cd B:\Ivanti-copilot\backend
 copy ..\config\example.env .env
 npm install
 npm run typecheck
+npm test
 ```
 
 The CDK scaffold under `infra/cdk` is a starting point for AWS deployment and should be wired to your preferred AWS account/bootstrap pattern before deployment.
+
+## Running in Docker
+
+The same handler runs as a container via a small HTTP adapter (`backend/src/server.ts`), so it can be deployed to ECS/Fargate, Kubernetes, or run locally.
+
+```powershell
+cd B:\Ivanti-copilot\backend
+docker build -t ivanti-copilot .
+docker run --rm -p 8080:8080 --env-file .env ivanti-copilot
+# GET http://localhost:8080/health
+```
+
+In a container, inject credentials as environment variables (`IVANTI_AUTH_HEADER_VALUE`, optionally `INTERNAL_SHARED_SECRET`). On AWS Lambda, leave those unset and the handler reads them from Secrets Manager via `IVANTI_SECRET_ARN`.
 
 ## License
 

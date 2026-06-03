@@ -6,6 +6,7 @@ import {
   KnowledgeArticleResult,
   ODataResponse
 } from "./types";
+import { ResolvedSecrets } from "./secrets";
 
 type RawRecord = Record<string, unknown>;
 
@@ -20,7 +21,10 @@ export class IvantiApiError extends Error {
 }
 
 export class IvantiClient {
-  constructor(private readonly config: AppConfig) {}
+  constructor(
+    private readonly config: AppConfig,
+    private readonly secrets: ResolvedSecrets
+  ) {}
 
   async searchKnowledge(query: string, maxResults: number, filters?: { category?: string; status?: string }): Promise<KnowledgeArticleResult[]> {
     const fields = this.config.knowledgeFields;
@@ -66,12 +70,26 @@ export class IvantiClient {
   private async getRows(url: URL): Promise<RawRecord[]> {
     this.ensureConfigured();
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: this.config.ivantiAuthHeaderValue,
-        Accept: "application/json"
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.config.ivantiTimeoutMs);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        headers: {
+          Authorization: this.secrets.ivantiAuthHeaderValue,
+          Accept: "application/json"
+        },
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new IvantiApiError(504, `Ivanti API request timed out after ${this.config.ivantiTimeoutMs}ms.`);
       }
-    });
+      throw new IvantiApiError(502, `Ivanti API request failed: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      clearTimeout(timer);
+    }
 
     const text = await response.text();
     if (!response.ok) {
@@ -83,6 +101,10 @@ export class IvantiClient {
   }
 
   private objectUrl(objectName: string): URL {
+    if (!this.config.ivantiBaseUrl) {
+      throw new IvantiApiError(500, "IVANTI_BASE_URL is not configured.");
+    }
+
     const base = trimRight(this.config.ivantiBaseUrl, "/");
     const path = trimBoth(this.config.ivantiOdataPath, "/");
     return new URL(`${base}/${path}/${encodeURIComponent(objectName)}`);
@@ -93,8 +115,8 @@ export class IvantiClient {
       throw new IvantiApiError(500, "IVANTI_BASE_URL is not configured.");
     }
 
-    if (!this.config.ivantiAuthHeaderValue) {
-      throw new IvantiApiError(500, "IVANTI_AUTH_HEADER_VALUE is not configured.");
+    if (!this.secrets.ivantiAuthHeaderValue) {
+      throw new IvantiApiError(500, "Ivanti auth header value is not configured (set IVANTI_AUTH_HEADER_VALUE or IVANTI_SECRET_ARN).");
     }
   }
 

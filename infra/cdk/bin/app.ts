@@ -13,11 +13,18 @@ new IvantiCopilotStack(app, `IvantiCopilot-${appEnv}`, {
   ivantiKnowledgeObject: str(app.node.tryGetContext("ivantiKnowledgeObject")),
   ivantiIncidentObject: str(app.node.tryGetContext("ivantiIncidentObject")),
   articleUrlTemplate: str(app.node.tryGetContext("articleUrlTemplate")),
+  ivantiTimeoutMs: num(app.node.tryGetContext("ivantiTimeoutMs")),
   requireBearerToken: bool(app.node.tryGetContext("requireBearerToken")),
+  allowedOrigins: str(app.node.tryGetContext("allowedOrigins")),
+  entraTenantId: str(app.node.tryGetContext("entraTenantId")),
+  entraAudience: str(app.node.tryGetContext("entraAudience")),
+  entraIssuer: str(app.node.tryGetContext("entraIssuer")),
   ivantiAuthHeaderValue: str(app.node.tryGetContext("ivantiAuthHeaderValue")),
   internalSharedSecret: str(app.node.tryGetContext("internalSharedSecret")),
   throttleRateLimit: num(app.node.tryGetContext("throttleRateLimit")),
   throttleBurstLimit: num(app.node.tryGetContext("throttleBurstLimit")),
+  enableWaf: bool(app.node.tryGetContext("enableWaf")),
+  alarmEmail: str(app.node.tryGetContext("alarmEmail")),
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION

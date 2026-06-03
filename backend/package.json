@@ -9,11 +9,16 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "powershell -NoProfile -Command \"Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue\""
+    "test": "tsc -p tsconfig.test.json && node --test \"dist-test/**/*.test.js\"",
+    "start": "node dist/server.js",
+    "clean": "powershell -NoProfile -Command \"Remove-Item -Recurse -Force dist, dist-test -ErrorAction SilentlyContinue\""
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
+    "jose": "^5.9.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }
 }
-

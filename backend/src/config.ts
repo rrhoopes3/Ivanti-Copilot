@@ -14,20 +14,38 @@ function envBool(name: string, fallback: boolean): boolean {
   return ["1", "true", "yes", "on"].includes(value.toLowerCase());
 }
 
+function envInt(name: string, fallback: number): number {
+  const parsed = Number(env(name));
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
+function envList(name: string): string[] {
+  return env(name)
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 export function loadConfig(): AppConfig {
   const baseUrl = env("IVANTI_BASE_URL");
+  const allowedOrigins = envList("ALLOWED_ORIGINS");
 
   return {
     appEnv: env("APP_ENV", "dev"),
     logLevel: env("LOG_LEVEL", "info"),
-    internalSharedSecret: env("INTERNAL_SHARED_SECRET") || undefined,
     requireBearerToken: envBool("REQUIRE_BEARER_TOKEN", false),
+    allowedOrigins: allowedOrigins.length ? allowedOrigins : ["*"],
     ivantiBaseUrl: baseUrl,
     ivantiOdataPath: env("IVANTI_ODATA_PATH", "/api/odata/businessobject"),
-    ivantiAuthHeaderValue: env("IVANTI_AUTH_HEADER_VALUE"),
+    ivantiSecretArn: env("IVANTI_SECRET_ARN") || undefined,
+    awsRegion: env("AWS_REGION") || env("AWS_DEFAULT_REGION") || undefined,
+    ivantiTimeoutMs: envInt("IVANTI_TIMEOUT_MS", 8000),
     ivantiKnowledgeObject: env("IVANTI_KB_OBJECT", "KnowledgeArticles"),
     ivantiIncidentObject: env("IVANTI_INCIDENT_OBJECT", "Incidents"),
     articleUrlTemplate: env("IVANTI_ARTICLE_URL_TEMPLATE", baseUrl ? `${baseUrl}/knowledge/{id}` : ""),
+    entraTenantId: env("ENTRA_TENANT_ID") || undefined,
+    entraAudience: env("ENTRA_AUDIENCE") || undefined,
+    entraIssuer: env("ENTRA_ISSUER") || undefined,
     knowledgeFields: {
       id: env("IVANTI_FIELD_ID", "RecId"),
       title: env("IVANTI_FIELD_TITLE", "Title"),
@@ -49,4 +67,3 @@ export function loadConfig(): AppConfig {
     }
   };
 }
-

@@ -1,6 +1,19 @@
 import { randomUUID } from "crypto";
+import { AppConfig } from "./types";
 import { loadConfig } from "./config";
-import { assertQuery, boundedInt, getHeader, getMethod, getPath, json, parseJsonBody, ValidationError } from "./http";
+import { resolveSecrets } from "./secrets";
+import {
+  assertQuery,
+  boundedInt,
+  getHeader,
+  getMethod,
+  getPath,
+  json,
+  parseJsonBody,
+  resolveCorsOrigin,
+  withCors,
+  ValidationError
+} from "./http";
 import { IvantiApiError, IvantiClient } from "./ivantiClient";
 import { authorizeRequest } from "./security";
 import { ApiGatewayEvent, ApiGatewayResponse, KnowledgeSearchRequest, SimilarIncidentRequest } from "./types";
@@ -9,6 +22,18 @@ export async function handler(event: ApiGatewayEvent): Promise<ApiGatewayRespons
   const startedAt = Date.now();
   const correlationId = getHeader(event, "x-correlation-id") ?? event.requestContext?.requestId ?? randomUUID();
   const config = loadConfig();
+  const corsOrigin = resolveCorsOrigin(config.allowedOrigins, getHeader(event, "origin"));
+
+  const response = await routeRequest(event, config, correlationId, startedAt);
+  return withCors(response, corsOrigin);
+}
+
+async function routeRequest(
+  event: ApiGatewayEvent,
+  config: AppConfig,
+  correlationId: string,
+  startedAt: number
+): Promise<ApiGatewayResponse> {
   const method = getMethod(event);
   const path = getPath(event);
 
@@ -25,12 +50,13 @@ export async function handler(event: ApiGatewayEvent): Promise<ApiGatewayRespons
       }, correlationId);
     }
 
-    const auth = authorizeRequest(event, config);
+    const secrets = await resolveSecrets(config);
+    const auth = await authorizeRequest(event, config, secrets);
     if (!auth.ok) {
       return json(401, { error: auth.message ?? "Unauthorized", correlationId }, correlationId);
     }
 
-    const client = new IvantiClient(config);
+    const client = new IvantiClient(config, secrets);
 
     if (method === "POST" && path === "/v1/knowledge/search") {
       const request = parseJsonBody<KnowledgeSearchRequest>(event);
@@ -98,4 +124,3 @@ function logError(error: unknown, context: Record<string, unknown>): void {
     errorMessage: error instanceof Error ? error.message : String(error)
   }));
 }
-

@@ -54,14 +54,19 @@ export interface IncidentFieldMapping {
 export interface AppConfig {
   appEnv: string;
   logLevel: string;
-  internalSharedSecret?: string;
   requireBearerToken: boolean;
+  allowedOrigins: string[];
   ivantiBaseUrl: string;
   ivantiOdataPath: string;
-  ivantiAuthHeaderValue: string;
+  ivantiSecretArn?: string;
+  awsRegion?: string;
+  ivantiTimeoutMs: number;
   ivantiKnowledgeObject: string;
   ivantiIncidentObject: string;
   articleUrlTemplate: string;
+  entraTenantId?: string;
+  entraAudience?: string;
+  entraIssuer?: string;
   knowledgeFields: FieldMapping;
   incidentFields: IncidentFieldMapping;
 }

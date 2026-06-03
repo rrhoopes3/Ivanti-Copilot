@@ -69,3 +69,23 @@ export class ValidationError extends Error {
   }
 }
 
+export function resolveCorsOrigin(allowedOrigins: string[], requestOrigin?: string): string {
+  if (allowedOrigins.includes("*")) {
+    return "*";
+  }
+
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    return requestOrigin;
+  }
+
+  return allowedOrigins[0] ?? "*";
+}
+
+export function withCors(response: ApiGatewayResponse, origin: string): ApiGatewayResponse {
+  response.headers["Access-Control-Allow-Origin"] = origin;
+  if (origin !== "*") {
+    response.headers["Vary"] = "Origin";
+  }
+  return response;
+}
+

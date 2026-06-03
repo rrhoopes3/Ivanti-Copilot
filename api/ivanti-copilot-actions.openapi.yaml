@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Ivanti Copilot ITSM Actions
+  version: 0.1.0
+  description: Read-only actions for retrieving approved Ivanti Neurons for ITSM knowledge and related resolved incidents.
+servers:
+  - url: https://api.example.com
+    description: Replace with AWS API Gateway URL.
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Check integration health.
+      description: Returns a simple health response for the Ivanti Copilot middleware.
+      responses:
+        "200":
+          description: Healthy response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /v1/knowledge/search:
+    post:
+      operationId: searchKnowledgeArticles
+      summary: Search approved Ivanti knowledge articles.
+      description: Use this action to find source articles for ITSM support questions. Return cited sources only; do not invent troubleshooting steps.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeSearchRequest"
+      responses:
+        "200":
+          description: Matching knowledge articles.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeSearchResponse"
+        "400":
+          description: Invalid request.
+        "401":
+          description: Unauthorized.
+  /v1/knowledge/articles/{articleId}:
+    get:
+      operationId: getKnowledgeArticle
+      summary: Retrieve one Ivanti knowledge article.
+      description: Use this action when a specific article ID is already known or selected from search results.
+      parameters:
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Ivanti knowledge article ID or record ID.
+      responses:
+        "200":
+          description: Knowledge article details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeArticleResponse"
+        "404":
+          description: Article not found.
+  /v1/incidents/similar:
+    post:
+      operationId: findSimilarResolvedIncidents
+      summary: Find similar resolved incidents.
+      description: Use this action to identify prior resolved incidents that may help an IT agent resolve a current ticket. Private notes and requester details must not be returned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimilarIncidentRequest"
+      responses:
+        "200":
+          description: Similar resolved incidents.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimilarIncidentResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+        environment:
+          type: string
+          example: pilot
+        timestamp:
+          type: string
+          format: date-time
+    KnowledgeSearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Natural-language ITSM knowledge query.
+          minLength: 3
+        maxResults:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+        filters:
+          type: object
+          properties:
+            category:
+              type: string
+            status:
+              type: string
+              default: Published
+        ticketContext:
+          type: object
+          description: Optional context from the current ticket, excluding private notes and sensitive user details.
+          properties:
+            category:
+              type: string
+            service:
+              type: string
+            symptom:
+              type: string
+    KnowledgeSearchResponse:
+      type: object
+      required:
+        - query
+        - results
+      properties:
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeArticleResult"
+        guidance:
+          type: string
+          description: Safety guidance for Copilot response composition.
+    KnowledgeArticleResponse:
+      allOf:
+        - $ref: "#/components/schemas/KnowledgeArticleResult"
+        - type: object
+          properties:
+            body:
+              type: string
+              description: Sanitized article body or excerpt allowed for Copilot grounding.
+    KnowledgeArticleResult:
+      type: object
+      required:
+        - id
+        - title
+        - sourceUrl
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        excerpt:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        updatedAt:
+          type: string
+        sourceUrl:
+          type: string
+          format: uri
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    SimilarIncidentRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 3
+        maxResults:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+        filters:
+          type: object
+          properties:
+            category:
+              type: string
+            service:
+              type: string
+    SimilarIncidentResponse:
+      type: object
+      required:
+        - query
+        - results
+      properties:
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/IncidentResult"
+    IncidentResult:
+      type: object
+      required:
+        - id
+        - subject
+      properties:
+        id:
+          type: string
+        incidentNumber:
+          type: string
+        subject:
+          type: string
+        excerpt:
+          type: string
+        resolutionExcerpt:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+        closedAt:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+

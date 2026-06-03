@@ -76,6 +76,8 @@ npm test
 
 The CDK scaffold under `infra/cdk` is a starting point for AWS deployment and should be wired to your preferred AWS account/bootstrap pattern before deployment.
 
+For an end-to-end walkthrough — from a fresh clone to a working Copilot agent — see the [deployment guide](docs/deployment.md).
+
 ## Running in Docker
 
 The same handler runs as a container via a small HTTP adapter (`backend/src/server.ts`), so it can be deployed to ECS/Fargate, Kubernetes, or run locally.

@@ -75,3 +75,9 @@ npm run typecheck
 
 The CDK scaffold under `infra/cdk` is a starting point for AWS deployment and should be wired to your preferred AWS account/bootstrap pattern before deployment.
 
+## License
+
+Licensed under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+This is an independent integration scaffold and is not affiliated with or endorsed by Ivanti, Inc. or Microsoft Corporation. Product names referenced here are trademarks of their respective owners.
+

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "AWS CDK scaffold for the Ivanti Copilot middleware (API Gateway + Lambda + Secrets Manager).",
+  "license": "Apache-2.0",
   "bin": {
     "ivanti-copilot-infra": "bin/app.ts"
   },

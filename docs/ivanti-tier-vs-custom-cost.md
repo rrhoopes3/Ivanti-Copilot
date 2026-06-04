@@ -106,6 +106,12 @@ Cheaper ≠ better fit. What the upgrade buys that the repo does **not** (today)
 **The trap on both sides is paying for capacity you don't use:** Ivanti's is **per
 idle seat**, ours is **per metered query**. Size whichever you pick to *actual* use.
 
+> **Can we just close the gap and skip the upgrade?** Partly — summarization and KB
+> draft text are free (pure LLM); persisting drafts with approval is a few weeks of
+> work; but autonomous end-to-end ticket resolution is *not* worth rebuilding. The
+> upgrade mainly buys that last piece. Full tier-by-tier analysis:
+> [`implementation-roadmap.md` → Closing the functionality gap](./implementation-roadmap.md#closing-the-functionality-gap-vs-ivanti-native-ai).
+
 ---
 
 ## To turn these estimates into your numbers
